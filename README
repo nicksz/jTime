@@ -1,0 +1,28 @@
+jTime lets coders make better use of asynchronous callbacks to 
+achieve more control over when code gets executed.  It removes the temporal 
+straightjackets imposed by traditional procedural and functional 
+methodologies.  jTime includes temporal methods that bridge the gap 
+between the various timing hacks used in kernel and device driver 
+programming and the long period temporal programming in cron. Applications 
+of jTime may include:
+
+* Animation
+* Simulation
+* Dynamic data visualization
+* Web searching and scraping
+* Music
+* Workflow
+* Dynamic business logic
+* Smart contracts/property
+* Monitoring for and processing of security events
+* Systems administration (much more temporal variety than cron)
+* Network protocols and administration 
+* All sorts of other things
+
+jTime runs in both client side (web browsers) and server side (node.js) 
+JavaScript, and does not depend on any other libraries. It is licensed 
+under a hybrid of the FreeBSD and MIT licenses: i.e. it is non-copylefted 
+open source.
+
+jTime is a work in progress. It is currently at a very early beta stage,
+and should be used only by experienced programmers.
