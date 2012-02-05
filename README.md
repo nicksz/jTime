@@ -62,7 +62,7 @@ http://ejohn.org/blog/accuracy-of-javascript-time/
 http://www.belshe.com/2010/06/04/chrome-cranking-up-the-clock/
 
 ## Usage
-'''javascript
+``` javascript
 
 var pollers = new Array();
 
@@ -114,3 +114,4 @@ setTimeout(function() {
 	      };
            }, 35000);
 
+```
