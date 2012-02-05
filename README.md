@@ -72,6 +72,7 @@ var pollers = new Array();
 
 #### becomes(pollInterval, condition, callback) 
 Runs callback when condition first occurs
+
 ``` javascript
 //  Prints "Hello World" once (at around 700ms) and stops
 pollers[0] = t_.becomes(700, function() { return true; }, 
@@ -81,6 +82,7 @@ pollers[0] = t_.becomes(700, function() { return true; },
 
 #### until(pollInterval, condition, callback)
 Runs callback until condition first occurs
+
 ``` javascript
 //  Prints "Hello World" every 1 second until poller cleared
 pollers[1] = t_.until(1000, function() { return false; }, 
@@ -99,6 +101,7 @@ pollers[2] = t_.when(1000, curTime+2500, function() { return true; },
 
 #### before(endTime, period, callback)
 Runs callback periodically until specified time
+
 ``` javascript
 // Prints "Hello World" and shows time when run, once per second
 // before 2700ms (i.e. twice)
@@ -111,6 +114,7 @@ pollers[3] = t_.before(curTime+2700, 1000,
 
 #### after (startTime, period, callback)
 Runs callback periodically after specified time
+
 ``` javascript
 // Runs ever 1 second after 3.7 seconds until poller cleared
 curTime = (new Date()).getTime();
@@ -122,6 +126,7 @@ pollers[4] = t_.after(curTime+3700, 1000,
 
 #### every (period, startTime, endTime, callback)
 Runs callback periodically from startTime until endTime
+
 ``` javascript
 // runs every 2 seconds starting in 9.1 seconds and ending near 15.1 seconds
 var curTime = (new Date()).getTime();
@@ -132,6 +137,7 @@ t_.every(2000, 9100 + curTime, 15500 + curTime,
 ```
 
 Finally, clean up by killing all the remaining timers:
+
 ``` javascript
 // terminate further execution of all runs set up with the above pollers
 // after 35 seconds
