@@ -1,11 +1,12 @@
 ## jTime.js
 ### Run your code when you want it to run
 
-jTime lets coders achieve more control over when asynchronous calls 
-get executed. jTime includes methods implemented over setTimeout()
-that run callbacks until or when a condition comes true, according to 
-regular or irregular schedules, and according to other temporal criteria. 
-jTime also includes the longEach() function that lets a long computation 
+
+jTime lets coders control when asynchronous calls get executed. jTime 
+includes methods implemented over setTimeout() that run callbacks 
+until or when a condition comes true, according to regular or irregular 
+schedules, or according to other temporal criteria. jTime also 
+includes the longEach() function that lets a long computation 
 over an array yield intermettently to allow other callbacks to run in 
 the single-threaded environment of a web browser.
 
@@ -51,6 +52,7 @@ collection, and other factors often also greatly reduce the actual
 resolution of when your callbacks will run from the theoretical 
 resolution of 4 ms.
 
+
 For more on JavaScript timer and Date resolution, see 
 
 http://www.nczonline.net/blog/2011/12/14/timer-resolution-in-browsers/
@@ -59,4 +61,56 @@ http://ejohn.org/blog/accuracy-of-javascript-time/
 
 http://www.belshe.com/2010/06/04/chrome-cranking-up-the-clock/
 
+## Usage
+'''javascript
+
+var pollers = new Array();
+
+//  Prints "Hello World" once (at around 700ms) and stops
+pollers[0] = t_.becomes(700, function() { return true; }, 
+              function() { console.log("Hello World"); } );
+
+//  Prints "Hello World" every 1 second until poller cleared
+pollers[1] = t_.until(100, function() { return false; }, 
+               function() { console.log("Hello World"); } );
+
+
+// Prints "Hello World" every 1 second for 2 seconds
+var curTime = (new Date()).getTime();
+pollers[2] = t_.when(1000, curTime+2500, function() { return true; }, 
+             function() { console.log("Hello World"); } );
+
+
+// Prints "Hello World" and shows time when run, once per second
+// before 2700ms (i.e. twice)
+curTime = (new Date()).getTime();
+pollers[3] = t_.before(curTime+2700, 1000,
+          function() { 
+	    console.log("Hello World, time = " + t_.showCurrentTime() ); 
+	  } );
+
+
+// Runs ever 1 second after 3.7 seconds until poller cleared
+curTime = (new Date()).getTime();
+pollers[4] = t_.after(curTime+3700, 1000,
+          function() { 
+	    console.log("test13 cb, time = " + t_.showCurrentTime() ); 
+	   } );
+
+
+// runs every 2 seconds starting in 9.1 seconds and ending near 15.1 seconds
+var curTime = (new Date()).getTime();
+t_.every(2000, 9100 + curTime, 15500 + curTime,
+        function() { 
+	          console.log("test9 cb, time = " + t_.showCurrentTime() ); 
+		          } );
+
+
+// terminate further execution of all runs set up with the above pollers
+// after 35 seconds
+setTimeout(function() {
+              for (i=0; i<poller.length; i++) {
+	        t_.clear(poller[i]);
+	      };
+           }, 35000);
 
