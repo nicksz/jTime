@@ -17,7 +17,7 @@ object in browsers is window for callbacks invoked in setTimeout().
 
 */
 
-
+var jTime = (function() {                 
 
 function JTime() { 
 
@@ -63,8 +63,6 @@ var jTime = new JTime();
 
 // aliases
 var T_ = JTime;
-var t_ = jTime;
-
 
 
 JTime.prototype.clear = function(p) {
@@ -195,6 +193,9 @@ JTime.prototype.happensFirst = function(pollInterval, conditionsActionsMap, even
      so need to poll but this kind of polling for this purpose is 
      very inefficient
      TODO: exponential or adaptive polling
+//####### TODO: MAKE ORTHOGONAL W/REST OF LIBRARY
+    function(pollInterval, time, callback, context)
+
 */
 JTime.prototype.at = function(time, pollInterval, callback, context) {
    var p = this.becomes(pollInterval, 
@@ -324,18 +325,14 @@ JTime.prototype.showCurrentTime = function() {
 }
 
 
+return jTime;
 
-/* try this instead?
-if(typeof exports != 'undefined'){
-  exports.jTime = jTime;
-  exports.t_ = t_;
-}
-*/
+}());
 
+var t_ = jTime;             // alias
 
 // exports for node.js
 if(typeof exports != 'undefined'){
-// var exports = this;
   this.becomes = t_.becomes;
   this.until = t_.until;
   this.every = t_.every;
@@ -349,3 +346,9 @@ if(typeof exports != 'undefined'){
 }
 
 
+/* doesn't work -- can be made to work?
+if(typeof exports != 'undefined'){
+  exports.jTime = jTime;
+  exports.t_ = t_;
+}
+*/
