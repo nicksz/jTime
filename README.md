@@ -62,15 +62,15 @@ http://ejohn.org/blog/accuracy-of-javascript-time/
 http://www.belshe.com/2010/06/04/chrome-cranking-up-the-clock/
 
 ## Usage
-First set up an array of pollers so that you can kill the timers
-you'll set up on demand:
+First set up an array of pollers so that you can kill on demand the timers
+you'll set up:
 
 ``` javascript
 var pollers = new Array();
 ```
 
 
-#### becomes(pollInterval, condition, callback) 
+##### becomes (pollInterval, condition, callback) 
 Runs callback when condition first occurs
 
 ``` javascript
@@ -80,7 +80,7 @@ pollers[0] = t_.becomes(700, function() { return true; },
 ```
 
 
-#### until(pollInterval, condition, callback)
+##### until (pollInterval, condition, callback)
 Runs callback until condition first occurs
 
 ``` javascript
@@ -89,7 +89,7 @@ pollers[1] = t_.until(1000, function() { return false; },
                function() { console.log("Hello World"); } );
 ```
 
-#### when(pollInterval, endTime, condition, callback)
+##### when (pollInterval, endTime, condition, callback)
 Runs callback whenever as condition is true and before endTime
 
 ``` javascript
@@ -99,7 +99,7 @@ pollers[2] = t_.when(1000, curTime+2500, function() { return true; },
              function() { console.log("Hello World"); } );
 ```
 
-#### before(endTime, period, callback)
+##### before (endTime, period, callback)
 Runs callback periodically until specified time
 
 ``` javascript
@@ -112,7 +112,7 @@ pollers[3] = t_.before(curTime+2700, 1000,
 	  } );
 ```
 
-#### after (startTime, period, callback)
+##### after (startTime, period, callback)
 Runs callback periodically after specified time
 
 ``` javascript
@@ -124,7 +124,7 @@ pollers[4] = t_.after(curTime+3700, 1000,
 	   } );
 ```
 
-#### every (period, startTime, endTime, callback)
+##### every (period, startTime, endTime, callback)
 Runs callback periodically from startTime until endTime
 
 ``` javascript
