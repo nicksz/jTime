@@ -108,6 +108,35 @@ p[3] = t_.after(curTime+3700, 1000,
 
 
 
+// should display the array items on the console
+var favoriteThings = ["raindrops", "whiskers", "kettles", "mittens"];
+
+
+
+
+workingThings = favoriteThings.concat();             // clone the array
+p[4] = t_.longEach(500, workingThings, 1,
+                    function(item) {
+                      console.log("test14 processing next item in array: " + item);
+                    });
+
+
+workingThings = favoriteThings.concat();             // clone the array
+p[5] = t_.longEach(100, workingThings, workingThings.length+1,         // should return error
+                    function(item) {
+                      console.log("test15 processing next item in array: " + item);
+                    });
+
+
+workingThings = favoriteThings.concat();             // clone the array
+p[6] = t_.longEach(100, workingThings, workingThings.length,       // should do entire array at once
+                    function(item) {
+                      console.log("test16 processing next item in array: " + item);
+                    });
+
+
+
+
 
 setTimeout(function() {
               for (i=0; i<p.length; i++) {
