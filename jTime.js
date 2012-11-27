@@ -58,6 +58,11 @@ function JTime() {
 
 }  // JTime()
 
+
+// try this instead
+// jTime = new JTime();
+
+// seems incorrect but probably worked
 var jTime = new JTime();
 
 
@@ -175,19 +180,89 @@ Checks whether a condition occurs or event fires before a deadline.
 Catches/binds the event, handler checks the time.
 expected is { event: event, condition: function }
 actionObj is {  firedCb: ...,  missedCb: ..., errCb:..., 
+            or just tCb: ....,      fcB: ..., errCb:...,
                 firedE: event, missedE: event, errE: event }
 */
-JTime.prototype.byDeadline = function(pI, deadline, expected, actionObj, context) {}
+JTime.prototype.byDeadline = function(pollInterval, deadline, condition, actionObj, context) {
+  var poller1 = t_.mySetInterval(function() { 
+     if (condition()) {
+       //### actionObj logic
+     }
+  }, pollInterval);
+  var poller2 = setTimeout(deadline, function() {
+     clear(poller1);
+  });
+  return poller1;
+}
+
+JTime.prototype.notByDeadline = function(pollInterval, deadline, condition, actionObj, context) {
+  poller = t_.byDeadline(pollInterval, deadline, condition, 
+   //  { firedCb: missedCb; missedCb: firedCb });
+       { tCb: actionObj.fCb, fCb: actionObj.tCb });
+  return poller;
+}
 
 
 
 /* TODO: fires based on whichever conditions and/or events happen first
-   { conditions: actionObjs }
-   { events: actionObjs }
+    conditionsActionsMap: [{condition: f; action: actionObj}]
 */
-JTime.prototype.happensFirst = function(pollInterval, conditionsActionsMap, eventsActionsMaps, context) {};
+JTime.prototype.happensFirst = function(pollInterval, conditionsActionsMap, eventsActionsMaps, context) {
+  var poller = t_.mySetInterval(pollInterval, function() {
+    for (var cA in conditionsActionsMap) {
+      if (cA.condition()) {
+        //#### cA.actionObj logic
+      };
+      break;
+    }
+  });
+  return poller;
+};
+ 
 
 
+
+//### functions for temporal relationships between conditions (and events?)
+
+//    allInOrder
+// a condition can stop being true, and a previous condition can come
+// true again, as long as each next condition occurs sometime after previous
+// condition
+JTime.prototype.allInOrder = function(pollInterval, conditions, actionObj) {
+  var poller = t_.mySetInterval(function() {
+    i=0;
+    if (conditions[i]()) {
+      i++;
+      if (i >= conditions.length) {
+        //### actionObjs execution logic goes here
+	clearInterval(poller);
+      }
+    };
+  }, pollInterval);
+  return poller;
+};
+
+//    allAnyOrder
+JTime.prototype.allAnyOrder = function(pollInterval, conditions, actionObj) {
+  var poller = t_.mySetInterval(function() {
+ /* 
+    foreach condition in conditions {
+      if (condition()) {
+         //### remove condition from conditions
+      }
+      if (conditions.length == 0) {
+         //##### actionObj logic
+         clearInterval(poller);
+	 break;
+      }
+    }
+ */
+  }, pollInterval);
+  return poller;
+}
+
+
+//##############################################33
 
 /*   at(), before(), and after() should trigger from system clock, not setTimeout(), 
      so need to poll but this kind of polling for this purpose is 

@@ -5,10 +5,11 @@
 jTime lets coders control when asynchronous calls get executed. jTime 
 includes methods implemented over setTimeout() that run callbacks 
 until or when a condition comes true, according to regular or irregular 
-schedules, or according to other temporal criteria. jTime also 
+schedules, or according to other temporal criteria.  jTime also 
 includes the longEach() function that lets a long computation 
 over an array yield intermettently to allow other callbacks to run in 
-the single-threaded environment of a web browser.
+the single-threaded environment of a web browser. You can provide an 
+optional context ("this" object) in which the callback will execute.
 
 jTime bridges the gap between the various timing hacks used in kernel and 
 device driver programming and the long period temporal programming in 
@@ -90,7 +91,7 @@ pollers[1] = t_.until(1000, function() { return false; },
 ```
 
 ##### when (pollInterval, endTime, condition, callback)
-Runs callback whenever as condition is true and before endTime
+Runs callback whenever the condition is true and before endTime
 
 ``` javascript
 // Prints "Hello World" every 1 second for 2 seconds
