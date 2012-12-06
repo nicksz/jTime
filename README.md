@@ -9,7 +9,9 @@ schedules, or according to other temporal criteria.  jTime also
 includes the longEach() function that lets a long computation 
 over an array yield intermettently to allow other callbacks to run in 
 the single-threaded environment of a web browser. You can provide an 
-optional context ("this" object) in which the callback will execute.
+optional context ("this" object) in which your callback will execute.  
+Otherwise your callback will run in the default context: normally the 
+global object, but no object ("this" undefined) in ECMAScript 5 strict mode.
 
 jTime bridges the gap between the various timing hacks used in kernel and 
 device driver programming and the long period temporal programming in 
@@ -148,4 +150,32 @@ setTimeout(function() {
 	      };
            }, 35000);
 ```
+
+How to make a condition be whether an event has occurred:
+General pattern for making a condition in t_ the occurrence of an event:
+
+0. set a shared-scope var flag = false;
+1. catch event, with callback function() { flag = true; }
+2. condition is function() { return (flag == true) }
+
+To check whether an event has occurred since the last polling change step 2 to the following:
+
+General pattern for making a condition in t_ the occurrence of an event:
+
+0. set a shared-scope var flag = false;
+1. catch event, with callback function() { flag = true; }
+2. condition is function() { return (flag == true) }
+
+To check whether an event has occurred since the last polling change step 2 to the following:
+
+
+General pattern for making a condition in t_ the occurrence of an event:
+
+0. set a shared-scope var flag = false;
+1. catch event, with callback function() { flag = true; }
+2. condition is function() { return (flag == true) }
+
+To check whether an event has occurred since the last polling change step 2 to the following:
+2. condition is function() { var returnValue = (flag == true); flag = false; return returnValue; }
+
 

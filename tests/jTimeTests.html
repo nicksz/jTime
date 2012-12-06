@@ -13,7 +13,7 @@ var p = new Array();
 /* is now a private function
 // clearable mySetInterval: works
 p[0] = t_.mySetInterval(200, function() { 
-                         console.log("mySetInterval (test1) cb, time = " + t_.showCurrentTime() );
+                         console.log("mySetInterval (test1) cb, time = " + t_.nowChopped() );
                       } );
 setTimeout(function() { t_.clear(p[0]) }, 4300);
 */
@@ -69,7 +69,7 @@ t_.when(1000, curTime + 2500, function() { return true; },
 var curTime = (new Date()).getTime();
 t_.every(2000, 9100 + curTime, 15500 + curTime,
         function() { 
-          console.log("test9 cb, time = " + t_.showCurrentTime() ); 
+          console.log("test9 cb, time = " + t_.nowChopped() ); 
         } );
 
 
@@ -77,7 +77,7 @@ t_.every(2000, 9100 + curTime, 15500 + curTime,
 curTime = (new Date()).getTime();
 t_.every(3000, 2400 + curTime, 11600 + curTime,
         function() { 
-          console.log("test10 cb, time = " + t_.showCurrentTime() ); 
+          console.log("test10 cb, time = " + t_.nowChopped() ); 
         } );
 
 
@@ -86,7 +86,7 @@ t_.every(3000, 2400 + curTime, 11600 + curTime,
 curTime = (new Date()).getTime();
 t_.at(curTime+2700, 1000,
       function() { 
-          console.log("test11 cb, time = " + t_.showCurrentTime() ); 
+          console.log("test11 cb, time = " + t_.nowChopped() ); 
         } );
 
 
@@ -95,7 +95,7 @@ t_.at(curTime+2700, 1000,
 curTime = (new Date()).getTime();
 t_.before(curTime+2700, 1000,
           function() { 
-             console.log("test12 cb, time = " + t_.showCurrentTime() ); 
+             console.log("test12 cb, time = " + t_.nowChopped() ); 
           } );
 
 
@@ -103,7 +103,7 @@ t_.before(curTime+2700, 1000,
 curTime = (new Date()).getTime();
 p[3] = t_.after(curTime+3700, 1000,
           function() { 
-             console.log("test13 cb, time = " + t_.showCurrentTime() ); 
+             console.log("test13 cb, time = " + t_.nowChopped() ); 
            } );
 
 

@@ -2,18 +2,13 @@
 
 jTime: run your code when you want it to run.
 
-cb = callback
-tCb = trueCallback
-fCb = falseCallback
-startCb = startCallback
-endCb = endCallback
+cb: callback
+tCb: trueCallback
+fCb: falseCallback
+startCb: startCallback
+endCb: endCallback
 
 actionObj = cb | { tcb: function, fCb: function } 
-Plan to add { errCb, tEvent, fEvent, errEvent } and perhaps others in future.
-Caller can include any or all or none of these.  e.g. can have a tCb or tEvent or both for the true case.
-
-context = the "this" object to be used in the callback.  The default context 
-object in browsers is window for callbacks invoked in setTimeout().
 
 */
 
@@ -22,12 +17,20 @@ var jTime = (function() {
 function JTime() { 
 
 
+  this.SECOND = 1000;
+  this.MINUTE = 60 * this.SECOND;
+  this.HOUR = 60 * this.MINUTE;
+  this.DAY = 24 * this.HOUR;
+  this.WEEK = 7 * this.DAY;
+
+
   function Poller() {
      this.poller;
      this.killMe = false;
 
      this.clear = function() {
         this.killMe = true;
+	clearTimeout(this.poller);
      }
 
   }
@@ -59,10 +62,6 @@ function JTime() {
 }  // JTime()
 
 
-// try this instead
-// jTime = new JTime();
-
-// seems incorrect but probably worked
 var jTime = new JTime();
 
 
@@ -74,6 +73,17 @@ JTime.prototype.clear = function(p) {
     p.clear();
 }
 
+
+JTime.prototype.setTimeout = function(timeout, callback) {
+  var p = new Poller();
+  p.poller = setTimeout(callback, timeout);
+  return p;
+}
+
+JTime.prototype.setInterval = function(timeout, callback) {
+  var p = t_.mySetInterval(timeout, callback);
+  return p;
+}
 
 
 JTime.prototype.becomes = function(pollInterval, condition, actionObj, context) {
@@ -110,7 +120,7 @@ JTime.prototype.when = function(pollInterval, timeout, condition, actionObj, con
    var curTime = (new Date()).getTime();
 
    if (typeof(actionObj.startCb) == "function") {
-      startCb();
+      startCb.call(context);
    };
    p = t_.mySetInterval(pollInterval, function() {
           if (condition()) {
@@ -131,16 +141,12 @@ JTime.prototype.when = function(pollInterval, timeout, condition, actionObj, con
 }
 
 
-// TODO: actionObj when whenCondition, run until untilCondition
-JTime.prototype.whenUntil = function(pollInterval, untilCondition, 
-                                        whenCondition, actionObj) {}
  
-
 JTime.prototype.every = function(period, start, timeout, actionObj, context) {
    var p;
    var curTime = (new Date()).getTime();
-   if (timeout <= period + start) {
-      console.log("jTime.every() ERROR: timeout must be greater than period + start");
+   if (timeout <= start) {
+      console.log("jTime.every() ERROR: timeout must be greater than start");
       return;
    };
    if (typeof(actionObj.startCb) == "function") {
@@ -165,113 +171,93 @@ JTime.prototype.every = function(period, start, timeout, actionObj, context) {
 }
 
 
-/* TODO:
-   performs actionObjs.tCb when changes from false to true
-   performs actionObjs.fCb when changes from true to false
-   performs actionObjs.ncCB when remains true or false from last poll
-*/
-JTime.prototype.whenChanges = function(pollInterval, condition, actionObj, context) {};
-
-
-
-/*
-TODO: 
-Checks whether a condition occurs or event fires before a deadline.
-Catches/binds the event, handler checks the time.
-expected is { event: event, condition: function }
-actionObj is {  firedCb: ...,  missedCb: ..., errCb:..., 
-            or just tCb: ....,      fcB: ..., errCb:...,
-                firedE: event, missedE: event, errE: event }
-*/
 JTime.prototype.byDeadline = function(pollInterval, deadline, condition, actionObj, context) {
-  var poller1 = t_.mySetInterval(function() { 
+  var happened = false;
+  var p1 = t_.mySetInterval(function() { 
      if (condition()) {
-       //### actionObj logic
+       happened = true;
+       if (typeof(actionObj) == "function") {
+          actionObj.call(context);
+       };
+       if (typeof(actionObj.tCb) == "function") {
+          actionObj.tCb.call(context);
+       };
+       clear(p1);
      }
   }, pollInterval);
-  var poller2 = setTimeout(deadline, function() {
-     clear(poller1);
+  var p2 = setTimeout(deadline, function() {
+     if (happened == false) {
+       if (typeof(actionObj.fCb) == "function") {
+          actionObj.fCb.call(context);
+       }
+     };
+     clear(p1);
   });
-  return poller1;
+  return p1;
 }
 
 JTime.prototype.notByDeadline = function(pollInterval, deadline, condition, actionObj, context) {
-  poller = t_.byDeadline(pollInterval, deadline, condition, 
-   //  { firedCb: missedCb; missedCb: firedCb });
+  var p = t_.byDeadline(pollInterval, deadline, condition, 
        { tCb: actionObj.fCb, fCb: actionObj.tCb });
-  return poller;
+  return p;
 }
 
 
 
-/* TODO: fires based on whichever conditions and/or events happen first
+/*  Fires based on whichever condition happen first
     conditionsActionsMap: [{condition: f; action: actionObj}]
 */
-JTime.prototype.happensFirst = function(pollInterval, conditionsActionsMap, eventsActionsMaps, context) {
-  var poller = t_.mySetInterval(pollInterval, function() {
+JTime.prototype.happensFirst = function(pollInterval, conditionsActionsMap, context) {
+  var p = t_.mySetInterval(pollInterval, function() {
     for (var cA in conditionsActionsMap) {
       if (cA.condition()) {
-        //#### cA.actionObj logic
+        if (typeof(cA.actionObj) == "function") {
+	  cA.actionObj.call(context);
+	}
       };
       break;
     }
   });
-  return poller;
+  return p;
 };
  
 
 
 
-//### functions for temporal relationships between conditions (and events?)
+// functions for temporal relationships between conditions 
 
 //    allInOrder
+// Run actionObj or tCb once if all the conditions are true in order
+// Run fCb until all of the conditions have yet come true
 // a condition can stop being true, and a previous condition can come
-// true again, as long as each next condition occurs sometime after previous
-// condition
-JTime.prototype.allInOrder = function(pollInterval, conditions, actionObj) {
-  var poller = t_.mySetInterval(function() {
-    i=0;
+// true again, as long as each next condition is true sometime after previous
+// condition is true
+// n.b. this is different from conditions _becoming_ true in order
+JTime.prototype.allInOrder = function(pollInterval, conditions, actionObj, context) {
+  var p = t_.mySetInterval(function() {
+    var i=0;
     if (conditions[i]()) {
       i++;
       if (i >= conditions.length) {
-        //### actionObjs execution logic goes here
-	clearInterval(poller);
+        if (typeof(actionObj) == "function") {
+	   actionObj.call(context);
+	};
+	if (typeof(actionObj.tCb) == "function") {
+	   actionObj.tCb.call(context);
+	};
+	clearInterval(p);
       }
-    };
-  }, pollInterval);
-  return poller;
-};
-
-//    allAnyOrder
-JTime.prototype.allAnyOrder = function(pollInterval, conditions, actionObj) {
-  var poller = t_.mySetInterval(function() {
- /* 
-    foreach condition in conditions {
-      if (condition()) {
-         //### remove condition from conditions
-      }
-      if (conditions.length == 0) {
-         //##### actionObj logic
-         clearInterval(poller);
-	 break;
+    } else {
+      if (typeof(actionObj.fCb) == "function") {
+        actionObj.fCb.call(context);
       }
     }
- */
   }, pollInterval);
-  return poller;
-}
+  return p;
+};
 
 
-//##############################################33
 
-/*   at(), before(), and after() should trigger from system clock, not setTimeout(), 
-     so need to poll but this kind of polling for this purpose is 
-     very inefficient
-     TODO: exponential or adaptive polling
-//####### TODO: MAKE ORTHOGONAL W/REST OF LIBRARY
-    function(pollInterval, time, callback, context)
-
-*/
 JTime.prototype.at = function(time, pollInterval, callback, context) {
    var p = this.becomes(pollInterval, 
                function() { 
@@ -286,7 +272,7 @@ JTime.prototype.at = function(time, pollInterval, callback, context) {
 
 JTime.prototype.after = function(time, pollInterval, callback, context) {
    var p = this.when(pollInterval, 
-            time + 29999,              //### isn't supposed to time out at all...
+            time + 29999,            
             function() { 
                return ((new Date()).getTime() > time) 
             }, 
@@ -355,48 +341,40 @@ JTime.prototype.longEach = function(pollInterval, array, step, callback, context
 
 
 
-// should work both in browswer and in node.js
-function bind(emittingObj, event, eventHandler){
-  if (emittingObj.addEventListener) {
-    emittingObj.addEventListener(event, eventHandler, false);
-  } else if (emittingObj.attachEvent) {
-    event = "on" + event;
-    emittingObj.attachEvent(event, eventHandler);
-  }
-
+JTime.prototype.now = function() {
+  return (new Date()).getTime();
 }
 
-function unbind(emittingObj, event, eventHandler) {};
-
-
-/* TODO: test bind list of events to emittingObj
-         unbind events
-         custom events
-*/
-JTime.prototype.on = function(emitters, event, eventHandler) {
-/*### TODO: check to see if it's a new kind of event, and if so create it */
-/*### create using event or the optional object event.condition, event.event */
-  if (typeof(emitters) == "Array") {
-      emitters.forEach(function(emittingObj) {
-           bind(emittingObj, event, eventHandler);
-      } ); 
-   } else {
-       bind(emitters, event, eventHandler); 
-   }   
+JTime.prototype.nowChopped = function() {
+  return t_.now() % 100000;
 }
 
-JTime.prototype.off = function(emitters, event, eventHandler) { }
+// get the starting second of the next minute, hour, day, or week
+// n.b. these don't account for leap seconds
 
+JTime.prototype.nextPasses = function(milliseconds) {
+  var now = t_.now();
+  return  now + milliseconds - now % (milliseconds);
+}
 
+JTime.prototype.nextMinute = function() {
+  var now = t_.now();
+  return  now + t_.oneMinute - now % (t_.oneMinute);
+}
 
+JTime.prototype.nextHour = function() {
+  var now = t_.now();
+  return  now + t_.oneHour - now % (t_.oneHour);
+}
 
-// TODO:
-// event handler that triggers only if condition is true when event fires
-JTime.prototype.onEventAndContition = function() {}  
+JTime.prototype.nextDay = function() {
+  var now = t_.now();
+  return  now + t_.oneDay - now % (t_.oneDay);
+}
 
-
-JTime.prototype.showCurrentTime = function() {
-  return (new Date()).getTime() % 100000;
+JTime.prototype.nextWeek = function() {
+  var now = t_.now();
+  return  now + t_.oneWeek - now % (t_.oneWeek);
 }
 
 
