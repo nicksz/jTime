@@ -153,6 +153,6 @@ General pattern for making a condition in t_ the occurrence of an event:
 
 To check whether an event has occurred since the last polling change step 2 to the following:
 
-2. condition is function() { var returnValue = (flag == true); flag = false; return returnValue; }
+condition is function() { var returnValue = (flag == true); flag = false; return returnValue; }
 
 
