@@ -37,9 +37,6 @@ JavaScript, and does not depend on any other libraries. It is licensed
 under a hybrid of the FreeBSD and MIT licenses: i.e. open source that is 
 much less restricted than copyleft licenses.
 
-jTime is a work in progress. It is currently at an early alpha
-stage, with many features remaining to add.
-
 The library synchronizes polling to the Date object time
         (new Date).getTime()
 during each polling interval. The duration between more than one
