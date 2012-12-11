@@ -69,7 +69,7 @@ First set up an array of pollers so that you can kill on demand the timers
 you'll set up:
 
 ``` javascript
-var pollers = new Array();
+var pollers = [];
 ```
 
 
@@ -97,8 +97,7 @@ Runs callback whenever the condition is true and before endTime
 
 ``` javascript
 // Prints "Hello World" every 1 second for 2 seconds
-var curTime = (new Date()).getTime();
-pollers[2] = t_.when(1000, curTime+2500, function() { return true; }, 
+pollers[2] = t_.when(1000, t_.now() + 2500, function() { return true; }, 
              function() { console.log("Hello World"); } );
 ```
 
@@ -108,10 +107,9 @@ Runs callback periodically until specified time
 ``` javascript
 // Prints "Hello World" and shows time when run, once per second
 // before 2700ms (i.e. twice)
-curTime = (new Date()).getTime();
-pollers[3] = t_.before(curTime+2700, 1000,
+pollers[3] = t_.before(t_.now() + 2700, 1000,
           function() { 
-	    console.log("Hello World, time = " + t_.showCurrentTime() ); 
+	    console.log("Hello World, time = " + t_.nowChopped() ); 
 	  } );
 ```
 
@@ -120,10 +118,9 @@ Runs callback periodically after specified time
 
 ``` javascript
 // Runs ever 1 second after 3.7 seconds until poller cleared
-curTime = (new Date()).getTime();
-pollers[4] = t_.after(curTime+3700, 1000,
+pollers[4] = t_.after(t_.now() + 3700, 1000,
           function() { 
-	    console.log("test13 cb, time = " + t_.showCurrentTime() ); 
+	    console.log("test13 cb, time = " + t_.nowChopped() ); 
 	   } );
 ```
 
@@ -132,11 +129,11 @@ Runs callback periodically from startTime until endTime
 
 ``` javascript
 // runs every 2 seconds starting in 9.1 seconds and ending near 15.1 seconds
-var curTime = (new Date()).getTime();
+var curTime = t_.now();
 t_.every(2000, 9100 + curTime, 15500 + curTime,
         function() { 
-	          console.log("test9 cb, time = " + t_.showCurrentTime() ); 
-		          } );
+	          console.log("test9 cb, time = " + t_.nowChopped() ); 
+	} );
 ```
 
 Finally, clean up by killing all the remaining timers:
