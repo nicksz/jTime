@@ -145,7 +145,6 @@ setTimeout(function() {
            }, 35000);
 ```
 
-How to make a condition be whether an event has occurred:
 General pattern for making a condition in t_ the occurrence of an event:
 
 0. set a shared-scope var flag = false;
@@ -154,22 +153,6 @@ General pattern for making a condition in t_ the occurrence of an event:
 
 To check whether an event has occurred since the last polling change step 2 to the following:
 
-General pattern for making a condition in t_ the occurrence of an event:
-
-0. set a shared-scope var flag = false;
-1. catch event, with callback function() { flag = true; }
-2. condition is function() { return (flag == true) }
-
-To check whether an event has occurred since the last polling change step 2 to the following:
-
-
-General pattern for making a condition in t_ the occurrence of an event:
-
-0. set a shared-scope var flag = false;
-1. catch event, with callback function() { flag = true; }
-2. condition is function() { return (flag == true) }
-
-To check whether an event has occurred since the last polling change step 2 to the following:
 2. condition is function() { var returnValue = (flag == true); flag = false; return returnValue; }
 
 
