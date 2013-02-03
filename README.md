@@ -17,7 +17,8 @@ jTime bridges the gap between the various timing hacks used in kernel and
 device driver programming and the long period temporal programming in 
 cron. Applications of jTime may include:
 
-* User interface programming, e.g. polling for user completion of steps
+* User interface programming, e.g. polling for user completion of steps,
+debouncing frequently triggered events
 * Network programming, e.g. events occurring in boolean combinations
 * Animation
 * Games
