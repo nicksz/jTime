@@ -12,6 +12,7 @@ actionObj = cb | { tcb: function, fCb: function }
 
 */
 
+
 var jTime = (function() {                 
 
 function JTime() { 
@@ -24,12 +25,14 @@ function JTime() {
 
   this.DEFAULT_POLLING_INTERVAL = 100;
 
-  function Poller() {
+  this.Poller = function() {
      this.poller;
      this.killMe = false;
+     this.isClear = false;
 
      this.clear = function() {
         this.killMe = true;
+	this.isClear = true;
 	clearTimeout(this.poller);
      }
 
@@ -41,7 +44,7 @@ function JTime() {
     var elapsed = '0.0';
 
     // this sets p.killMe to false
-    var p = new Poller();
+    var p = new t_.Poller();
 
     function next()  
     {  
@@ -70,12 +73,13 @@ var T_ = JTime;
 
 
 JTime.prototype.clear = function(p) {
-    p.clear();
+    if (p) 
+       p.clear();
 }
 
 
 JTime.prototype.setTimeout = function(timeout, callback) {
-  var p = new Poller();
+  var p = new t_.Poller();
   p.poller = setTimeout(callback, timeout);
   return p;
 }
@@ -86,6 +90,7 @@ JTime.prototype.setInterval = function(timeout, callback) {
 }
 
 
+// polls for the first occurence of condition
 JTime.prototype.becomes = function(pollInterval, condition, actionObj, context) {
    var p;
    if (typeof(actionObj.startCb) == "function") {
@@ -146,7 +151,7 @@ JTime.prototype.every = function(period, start, timeout, actionObj, context) {
    var p;
    var curTime = (new Date()).getTime();
    if (timeout <= start) {
-      console.log("jTime.every() ERROR: timeout must be greater than start");
+      console.error("jTime.every() ERROR: timeout must be greater than start");
       return;
    };
    if (typeof(actionObj.startCb) == "function") {
@@ -292,6 +297,25 @@ JTime.prototype.before = function(time, pollInterval, callback, context) {
 }
 
 
+// decorates function callback with a wrapper that prevents it
+// from executing more than once in the interval
+JTime.prototype.debounce = function(callback, interval, doLeading) {
+    var p = null, cachedResult;        // shared by each invocation
+    return function() {
+        var higherThis = this, higherArguments = arguments;
+	var doNow = doLeading && (p === null);
+        t_.clear(p);
+        p = t_.setTimeout(interval, function() {
+            p = null;
+            if (!doLeading) 
+	        cachedResult = callback.apply(higherThis, higherArguments);
+        });
+        if (doNow) 
+	   cachedResult = callback.apply(higherThis, higherArguments);
+	return cachedResult;
+    }
+} 
+
 
 JTime.prototype.Schedule = function() {
   this.sched = new Array();
@@ -337,6 +361,7 @@ JTime.prototype.longEach = function(pollInterval, array, step, callback, context
                      });
     return p;
 }
+
 
 
 

@@ -117,6 +117,19 @@ p[6] = t_.longEach(100, workingThings, workingThings.length,       // should do 
 
 
 
+function add(x,y) {
+   console.log("Just called function add");
+   return x+y;
+}
+
+var addDebounced = t_.debounce(add, 200, true);
+for (var i=0; i<4; i++) {
+   console.log("step " + i + " " + ", 2 + 2 debounced 200 and invoked immediately: " + addDebounced(2,2));
+}
+
+t_.setTimeout(400, function() {
+   console.log("2 + 2 debounced 200 and delayed 400: " + addDebounced(2,2));
+});
 
 
 setTimeout(function() {
