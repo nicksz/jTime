@@ -145,33 +145,37 @@ setTimeout(function() {
            }, 35000);
 ```
 
-## Common patterns using jTime
+## Common patterns using jTime (optional jQuery also used in these examples)
 ### Poll for boolean combinations of events
 
 ```javascript
 happened = {};
-$ajax(...
-   success: function() {
-      happened.ajax1success = true; 
-      // ... handle event ...
+$.ajax(...,
+    success: function() {
+        happened.ajax1success = true; 
+        ... handle event ...
+    },
+    ...
 });
-$ajax(...
-   success: function() {
-   happened.ajax2success = true; 
-   // ... handle event ...
+$.ajax(...,
+    success: function() {
+        happened.ajax2success = true; 
+        ... handle event ...
+    },
+    ...
 });
 $t_.becomes(20, 
-  function() { return (happened &&
+    function() { return (happened &&
                        happened.ajax1success === true &&
-		       happened.ajax2success === true) },
-  function() { 
-     // ... code to run after both events have happened ...
-     happened = {};
+                       happened.ajax2success === true) },
+    function() { 
+        ... code to run after both events have happened ...
+        happened = {};
   });
 ```
 
 ### Poll for user completion of all required steps
-#### Some the user can perform in any order, some in a required order. Here user can perform either step 1 or 2 first, but step 2a can only happen after step 2. Typically runs inside an infinite loop or recursion (not shown).
+##### Some the user can perform in any order, some in a required order. Here user can perform either step 1 or 2 first, but step 2a can only happen after step 2. Typically runs inside an infinite loop or recursion (not shown).
 ```javascript
 happened = {};
 $('#button1').on('click', function() {
@@ -188,7 +192,7 @@ $('#button2').on('click', function() {
 $t_.becomes(20, 
   function() { return (happened &&
                        happened.step1Done === true &&
-		       happened.step2aDone === true) },
+                       happened.step2aDone === true) },
   function() { 
      // ... code to run after both steps are done...
      happened = {};
