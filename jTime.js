@@ -16,13 +16,13 @@ var jTime = (function() {
 
 function JTime() { 
 
-
   this.SECOND = 1000;
   this.MINUTE = 60 * this.SECOND;
   this.HOUR = 60 * this.MINUTE;
   this.DAY = 24 * this.HOUR;
   this.WEEK = 7 * this.DAY;
 
+  this.DEFAULT_POLLING_INTERVAL = 100;
 
   function Poller() {
      this.poller;
@@ -257,7 +257,6 @@ JTime.prototype.allInOrder = function(pollInterval, conditions, actionObj, conte
 };
 
 
-
 JTime.prototype.at = function(time, pollInterval, callback, context) {
    var p = this.becomes(pollInterval, 
                function() { 
@@ -345,10 +344,22 @@ JTime.prototype.now = function() {
   return (new Date()).getTime();
 }
 
-JTime.prototype.nowChopped = function() {
-  return t_.now() % 100000;
+JTime.prototype.nowChopped = function(modulus) {
+  if (modulus) 
+     return t_.now() % modulus;
+  else
+     return t_.now() % 100000;
 }
 
+JTime.prototype.zeroPad = function(int) {
+    int = int.toString();
+    if (int.length > 1) 
+       return int;
+    else
+       return "0" + int;
+}
+
+  
 // get the starting second of the next minute, hour, day, or week
 // n.b. these don't account for leap seconds
 
@@ -377,7 +388,6 @@ JTime.prototype.nextWeek = function() {
   return  now + t_.oneWeek - now % (t_.oneWeek);
 }
 
-
 return jTime;
 
 }());
@@ -385,23 +395,8 @@ return jTime;
 var t_ = jTime;             // alias
 
 // exports for node.js
-if(typeof exports != 'undefined'){
-  this.becomes = t_.becomes;
-  this.until = t_.until;
-  this.every = t_.every;
-  this.when = t_.when;  
-  this.at = t_.at;
-  this.after = t_.after;
-  this.before = t_.before;
-  this.Schedule = t_.Schedule;
-  this.on = t_.on;
-  this.longEach = t_.longEach;
+if (typeof module != 'undefined'){
+  module.exports = t_;
 }
 
 
-/* doesn't work -- can be made to work?
-if(typeof exports != 'undefined'){
-  exports.jTime = jTime;
-  exports.t_ = t_;
-}
-*/

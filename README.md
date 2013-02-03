@@ -145,14 +145,53 @@ setTimeout(function() {
            }, 35000);
 ```
 
-General pattern for making a condition in t_ the occurrence of an event:
+## Common patterns using jTime
+### Poll for boolean combinations of events
 
-0. set a shared-scope var flag = false;
-1. catch event, with callback function() { flag = true; }
-2. condition is function() { return (flag == true) }
+```javascript
+happened = {};
+$ajax(...
+   success: function() {
+      happened.ajax1success = true; 
+      // ... handle event ...
+});
+$ajax(...
+   success: function() {
+   happened.ajax2success = true; 
+   // ... handle event ...
+});
+$t_.becomes(20, 
+  function() { return (happened &&
+                       happened.ajax1success === true &&
+		       happened.ajax2success === true) },
+  function() { 
+     // ... code to run after both events have happened ...
+     happened = {};
+  });
+```
 
-To check whether an event has occurred since the last polling change step 2 to the following:
-
-condition is function() { var returnValue = (flag == true); flag = false; return returnValue; }
-
+### Poll for user completion of all required steps
+#### Some the user can perform in any order, some in a required order. Here user can perform either step 1 or 2 first, but step 2a can only happen after step 2. Typically runs inside an infinite loop or recursion (not shown).
+```javascript
+happened = {};
+$('#button1').on('click', function() {
+      // ... handle event ...
+      happened.step1Done = true; 
+});
+$('#button2').on('click', function() {
+      $('#button2a').on('click', function() {
+          // ... handle event ...
+          happened.step2aDone = true;  
+      });
+      // ... handle event ...
+});
+$t_.becomes(20, 
+  function() { return (happened &&
+                       happened.step1Done === true &&
+		       happened.step2aDone === true) },
+  function() { 
+     // ... code to run after both steps are done...
+     happened = {};
+  });
+```
 
