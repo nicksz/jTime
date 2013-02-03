@@ -145,7 +145,8 @@ setTimeout(function() {
            }, 35000);
 ```
 
-## Common patterns using jTime (optional jQuery also used in these examples)
+## Common patterns using jTime 
+##### (optional jQuery also used in these examples)
 ### Poll for boolean combinations of events
 
 ```javascript
@@ -156,22 +157,22 @@ $.ajax(...,
         ... handle event ...
     },
     ...
-});
+);
 $.ajax(...,
     success: function() {
         happened.ajax2success = true; 
         ... handle event ...
     },
     ...
-});
-$t_.becomes(20, 
+);
+t_.becomes(20, 
     function() { return (happened &&
                        happened.ajax1success === true &&
                        happened.ajax2success === true) },
     function() { 
         ... code to run after both events have happened ...
         happened = {};
-  });
+});
 ```
 
 ### Poll for user completion of all required steps
@@ -179,7 +180,7 @@ $t_.becomes(20,
 ```javascript
 happened = {};
 $('#button1').on('click', function() {
-      // ... handle event ...
+      ... handle event ...
       happened.step1Done = true; 
 });
 $('#button2').on('click', function() {
@@ -187,15 +188,15 @@ $('#button2').on('click', function() {
           // ... handle event ...
           happened.step2aDone = true;  
       });
-      // ... handle event ...
+      ... handle event ...
 });
-$t_.becomes(20, 
+t_.becomes(20, 
   function() { return (happened &&
                        happened.step1Done === true &&
                        happened.step2aDone === true) },
   function() { 
-     // ... code to run after both steps are done...
+     ... code to run after both steps are done...
      happened = {};
-  });
+});
 ```
 
