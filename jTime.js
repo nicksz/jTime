@@ -149,15 +149,24 @@ JTime.prototype.when = function(pollInterval, timeout, condition, actionObj, con
  
 JTime.prototype.every = function(period, start, timeout, actionObj, context) {
    var p;
+
    var curTime = (new Date()).getTime();
    if (timeout <= start) {
       console.error("jTime.every() ERROR: timeout must be greater than start");
       return;
    };
+
    if (typeof(actionObj.startCb) == "function") {
       startCb.call(context);
    };
+
    setTimeout(function() { 
+        /* call it right away when we start */
+        if (typeof(actionObj) === "function") {
+	   actionObj.call(context);
+	} else if (typeof(actionObj.cb) === "function") {
+	   actionObj.cb.call(context);
+	}
         p = t_.mySetInterval(period, function() {
           if (typeof(actionObj) === "function") { 
              actionObj.call(context); 
@@ -165,6 +174,7 @@ JTime.prototype.every = function(period, start, timeout, actionObj, context) {
           if (typeof(actionObj.cb) === "function") { actionObj.cb.call(context); };
         }, context);
    }, start-curTime);
+
    setTimeout(function() { 
                  t_.clear(p); 
                  if (typeof(actionObj.endCb) === "function") {
@@ -174,6 +184,7 @@ JTime.prototype.every = function(period, start, timeout, actionObj, context) {
               timeout-curTime);
    return p;
 }
+
 
 
 JTime.prototype.byDeadline = function(pollInterval, deadline, condition, actionObj, context) {
@@ -296,7 +307,6 @@ JTime.prototype.before = function(time, pollInterval, callback, context) {
    return p;
 }
 
-
 // decorates function callback with a wrapper that prevents it
 // from executing more than once in the interval
 JTime.prototype.debounce = function(callback, interval, doLeading) {
@@ -315,6 +325,7 @@ JTime.prototype.debounce = function(callback, interval, doLeading) {
 	return cachedResult;
     }
 } 
+
 
 
 JTime.prototype.Schedule = function() {
