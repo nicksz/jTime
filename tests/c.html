@@ -1,0 +1,1462 @@
+<html>
+<meta charset='utf-8'>
+<head>
+
+
+  <link href='file:///c:/Users/guest2/Documents/scripts/jquery-ui-1.9.2.custom/jquery-ui-1.9.2.custom/css/ui-lightness/jquery-ui-1.9.2.custom.css' rel='stylesheet' type='text/css'/>
+
+
+  <script src='file:///c:/Users/guest2/Documents/scripts/jquery-ui-1.9.2.custom/jquery-ui-1.9.2.custom/js/jquery-1.8.3.js'></script>
+  <script src='file:///c:/Users/guest2/Documents/scripts/jquery-ui-1.9.2.custom/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js'></script>
+
+
+<!-- WHEN LIBRARIES' OBJECT NOT FOUND
+   either it FAILED TO LOAD (most common)
+      * check the tags above to make sure they are properly closed!
+   or there's a SYNTAX OR RUN-TIME ERROR IN THE LIBRARY, not always obvious
+   sometimes the latter can be triggered by IE9 SILENTLY ENTERING QUIRKS MODE 
+     (due to F12 I presume)
+-->
+
+  <script src='../jTime/jTime.js'></script>
+  <script src='../vectors/vectors.js'></script>
+  <script src='../jQueryPlugins/jQuery.analogTimePicker.js'></script>
+ 
+
+  <script>
+
+$(document).ready(function() {
+
+  console.log('Hello there document is ready at ' + t_.nowChopped());
+
+  console.obj = function(o) {
+//### use console.dir for IE -- need conditional code for this
+     console.log(JSON.stringify(o, null, 4));
+  }
+
+
+
+
+
+var aTP = $('.analogTimePicker').analogTimePicker({
+    hoursIn24: { color: 'teal' },
+    minutesIn60: { color: 'white' },
+    secondsIn60: { color: 'teal' },
+
+});
+
+console.log('aTP: ');
+console.obj(aTP);
+
+$('.resizable')
+   .wrap('<div class="resizable_parent" />') // returns the original set not the wrap
+//   .after('<div id="handle-s" class="ui-resizable-handle ui-resizable-s">')
+   .after('</div><div id="handle-e" class="ui-resizable-handle ui-resizable-e"></div>')
+   .css({ 'overflow' : 'hidden'})
+   .parent()       // get the wrap
+   .css({ 'display' : 'inline-block',
+	  'overflow' : 'hidden',
+	  'max-width' : function() { 
+	      return $('.resizable', this).css('max-width');
+	  },
+	  'min-width' : function() { 
+	      return $('.resizable', this).css('min-width');
+	  },
+	  'width' : function() {
+	      return $('.resizable', this).width();
+	  },
+/* I really want this to be based on viewport size */
+	  'max-height' : function() { 
+	      return $('.resizable', this).css('max-height');
+	  },
+	  'float' : function() {
+	      return $('.resizable', this).css('float');
+	  },
+	  'padding-bottom' : '38px',         // was 12px
+	  'padding-right' : '38px'          // was 12px
+	  /*
+	  'margin-bottom' : '12px',         // new
+	  'margin-right' : '12px' 
+	  */
+	  })        // new
+   .resizable({ 
+       handles: 'e, se',
+       resize: function(event) { 
+//       console.log("resizable resizing");
+//### alas, this doesn't stop the u.keepHeightRelativeToViewport
+//### from overriding reizable()'s height change
+
+//### also commenting this out doesn't make any difference
+//### to keepHeightRelativeToViewport working in FF
+//       event.stopPropagation(); 
+    } })
+   .find('.resizable')
+   .css({ 'overflow' : 'auto',
+          'width' : '100%',
+	  'height' : '100%' });
+                        
+		
+
+ 
+  var Util = function() {
+  }
+
+  Util.prototype.on = function(selector, eventType, cb, color) {
+     $(selector)
+       .css('background-color', titles.colors.onButton)
+       .css('opacity', 1.0)
+       .bind(eventType, cb);
+     if (color)
+        $(selector).css('background-color', color);
+  }
+
+  Util.prototype.off = function(selector, eventType) {
+     $(selector)
+       .css('background-color', titles.colors.offButton)
+       .css('opacity', 0.5)
+       .unbind(eventType);
+  }
+
+  Util.prototype.deepCopy = function(sourceObject) {
+    return jQuery.extend({}, sourceObject);
+  }
+
+  Util.prototype.removeFromArray = function(array, element) {
+     array.splice(array.indexOf(element), 1);
+  }
+
+  Util.prototype.removeFromSet = function(set, element) {
+    var newSet = u.deepCopy(set);
+    
+    for (var elem in newSet) {
+      if (newSet[elem] === element) 
+        delete newSet[elem];
+    }
+    return newSet;
+  }
+
+
+//### works in IE9
+//#### broken on FF
+//### also resizing still works on FF
+  Util.prototype.keepHeightRelativeToViewport = function(selector, percent, fixed) {
+console.log("In Util.keepHeightRelativeToViewport, fixed = " + fixed);
+     $(selector)
+         .css('height', 
+	      Math.round(parseInt(percent) * document.documentElement.clientHeight/ 100) - parseInt(fixed));
+     $(window).bind('resize', function () {
+       $(selector)
+         .css('height', 
+	      Math.round(parseInt(percent) * document.documentElement.clientHeight/ 100) - parseInt(fixed));
+     });
+  }
+  
+  Util.prototype.keepWidthRelativeToViewport = function(selector, percent, fixed) {
+console.log("In Util.keepWidthRelativeToViewport, fixed = " + fixed);
+     $(selector)
+         .css('width', 
+	      Math.round(parseInt(percent) * document.documentElement.clientWidth / 100) - parseInt(fixed));
+     $(window).bind('resize', function () {
+       $(selector)
+         .css('width', 
+	      Math.round(parseInt(percent) * document.documentElement.clientWidth / 100) - parseInt(fixed));
+     });
+  }
+
+  Util.prototype.totalHeight = function(element) {
+    return parseInt(
+      $(element).css('height') + 
+      $(element).css('padding-top') +
+      $(element).css('padding-bottom') +
+      $(element).css('margin-top') +
+      $(element).css('margin-bottom')
+    );
+  }
+
+  Util.prototype.totalWidth =function(element) {
+    return parseInt(
+      $(element).css('width') + 
+      $(element).css('padding-right') +
+      $(element).css('padding-left') +
+      $(element).css('margin-right') +
+      $(element).css('margin-left')
+    );
+  }
+
+  var u = new Util;
+
+//### this effectively disables the manual resize
+//### alas, event.stopPropagation passed as resize:
+//### callback run when resizable() resizes its
+//### element(s) doesn't prevent this disabling
+//### presumably because event has already bubbled
+//### before resizable() calls the user-passed resize: callback?
+
+  u.keepHeightRelativeToViewport('.resizable_parent', 
+                                 '95%', 
+				 u.totalHeight($('header').get(0)) + 90); 
+				 
+
+
+
+  var Contract = function(options) {
+     var defaults = {
+        type: 'future',
+	counterparty: players['Alice']
+     }
+
+     if (options.type) 
+        this.type = options.type;
+     else
+        this.type = defaults.type;
+     if (options.counterparty) 
+        this.counterparty = options.counterparty;
+     else
+        this.counterparty = defaults.counterparty;
+
+  }
+
+  // either a name or a service ticket?
+  var Property = function(options) {
+     var defaults = {
+        name: 'error: supply a name',
+        type: 'name'
+	//  store owner under Titles
+     }
+
+     this.transfers = [];
+
+   if (options.name)
+       this.name = options.name;
+     else
+       console.error('Error: must supply a name for a new piece of property');
+     if (options.type)
+       this.type = options.type;
+     else
+       this.type = defaults.type;
+  }
+
+
+  var Titles =function() {
+//### how to make these private but still accessible from Titles.prototype.fff functions?
+    this.properties = {};      
+    this.transfers = [];
+    this.previouslyTransfered = {};
+    this.colors = {
+       defaultBackground: '',		// browser default background color
+       previouslyTransferred: 'rgba(22, 200, 200, .25)',  // dull aqua
+       me: 'blue',
+//       onButton: 'teal',
+//       onButton: '#008080',    // same as teal
+//       onButton: '#117171',      // a grayer shade of teal
+       onButton: '#226262',      // an even grayer shade of teal
+       offButton: '',    //## want default color but .50 rgba transparency
+       cancelButton: 'maroon',
+       analogTimePickerMinutes: 'white',
+       analogTimePickerSeconds: 'rgb(22, 200, 200)',     // aqua
+       analogTimePickerInner: ''
+    };
+    this.pollInterval = t_.SECOND;
+  }
+
+  
+  Titles.prototype.owner = function(right) {
+        return right.transfers[right.transfers.length-1].name;
+  }
+
+  Titles.prototype.mustSwap = function(party, counterparty, myRight, theirRight) {
+console.log('Now at ' + t_.nowChopped() + ' we force a mutual SWAP of ' + myRight.name + ' for ' + theirRight.name + ' between ' + party.name + ' and ' + counterparty.name);
+      this.transfer(party, counterparty, myRight);
+      this.transfer(counterparty, party, theirRight);
+      $('#propertiesHeldContent #' + myRight.name).css('background-color', this.colors.previouslyTransferred);
+      $('#propertiesHeldContent #' + theirRight.name).css('background-color', this.colors.previouslyTransferred);
+      for (previously in this.previouslyTransferred) {
+          $('#propertiesHeldContent #' + this.previously.name).css('background-color', this.colors.defaultBackground);
+      }
+      this.previouslyTransfered = [];
+      this.previouslyTransfered.push(myRight);
+      this.previouslyTransfered.push(theirRight);
+  }
+
+  Titles.prototype.transfer = function(party, counterparty, right) {
+console.log('Now at ' + t_.nowChopped() + ' we force a TRANSFER of ' + right.name + ' from ' + party.name + ' to ' + counterparty.name);
+      if (party.name !== this.owner(right))  {
+console.error('owner: ' + this.owner(right));
+console.error('party.name: ' + party.name);
+console.error('counterparty.name: ' + counterparty.name);
+console.error('Error: party trying to transfer is not the owner');
+}
+      else 
+         this.properties[right.name].transfers.push(counterparty);
+      this.transfers.push({ type: 'transfer', party: party, counterparty: counterparty, right: right });
+      $('#transferHistoryContent').append('<tr><td class="owner"><div class="owner">' +  party.name + '</div></td><td class="owner"><div class="owner">' + counterparty.name   + '</div></td><td>' + right.name  + '</td></tr>');
+      titles.listProperties('all');
+      $('#propertiesHeldContent #' + right.name).css('background-color', this.colors.previouslyTransferred);
+      for (previously in this.previouslyTransferred) {
+          $('#propertiesHeldCont#' + this.previously.name).css('background-color', this.colors.defaultBackground);
+      }
+      this.previouslyTransfered = [];
+      this.previouslyTransfered.push(right);
+  }
+
+// homesteading typically done by namespace definor or service provider
+  Titles.prototype.homestead = function(right, claimor) {
+      this.properties[right.name] = right;  // want to do a deep copy?
+                               // OK to wait until persist to do that?
+      if (this.properties[right.name].transfers.length > 0)
+         console.error('Error: can\'t homestead a property somebody already owns:' + right.name);
+      // put new owner on the transactions array
+      this.properties[right.name].transfers.push(claimor);
+      this.transfers.push({ type: 'homestead', party: claimor, right: right });
+  }
+
+
+  Titles.prototype.listProperties =function(owner, showGrantButton) {
+     $('#propertiesHeldContent').empty();
+     $('#propertiesHeldContent').append('<tr><th>Property</th><th>Owner</th><th></th><th></th></tr>');
+     for (var p in titles.properties) {
+        var ownerOfP = titles.owner(titles.properties[p]);
+        var propertyEntry;
+        if (!(owner && owner !== 'all' && owner !== ownerOfP)) { 
+           propertyEntry = '<tr class="propertyListing" id=' + p + '><td class="propertyName"><div class="propertyName">' + p + '</div></td> ';
+           propertyEntry += '<td class="owner">' + ownerOfP + '</td> ';
+        if (showGrantButton)  //### <td> ?
+	   propertyEntry += '<td><button class="grant" value="' + p + '">Grant</button></td>';
+            propertyEntry += '</tr>';
+        $('#propertiesHeldContent').append(propertyEntry);
+    }
+  }
+}
+
+
+  var titles = new Titles();
+
+
+  var kAtoms = {
+     grant: {
+        k: function(party, counterparty, right) { titles.transfer(party, counterparty, right);
+           }
+     },
+     timedGrant: {
+        k: function(party, counterparty, right, deliveryTime) { 
+console.log('In the timedGrant atom, deliveryTime = ' + deliveryTime);
+	      t_.at(deliveryTime + 50, titles.pollInterval,
+	         function() { titles.transfer(party, counterparty, right); });
+              }
+     },
+     swap: {
+        k:  function(party, counterparty, rightA, rightB) { 
+	       titles.mustSwap(party, counterparty, rightA, rightB);
+            }
+     },
+     future: {
+        k:  function(party, counterparty, rightA, rightB, deliveryTime) { 
+	      t_.at(deliveryTime + 50, titles.pollInterval,
+	         function() { titles.mustSwap(party, counterparty, rightA, rightB) });
+             }
+     }
+  }
+
+
+
+  var Player = function(name) {
+     this.name = name;
+     this.offerQueue = [];
+     this.kActivity = [];   // right now I'm just going straight to screen
+  }
+
+  Player.prototype.showAndOnOffers = function() {
+      $('#offerQueue').empty();
+      var higherThis = this;
+
+      this.offerQueue.forEach(function(offer) {
+         $('#offerQueue').append('<span class="offerMessage">' + offer.messages.offer + '</span><br/>');
+
+         if (offer.partyIs === 'offeror') {
+console.log('this should be the offeror');
+
+           var button = '<button class="' + offer.kAtomName + 'Cancel cancel" value="' + offer.kAtomName + 'Cancel cancel">Cancel</button>';
+	   $('#offerQueue').append(button);
+	   u.on('button.cancel', 'click', function() {
+              u.removeFromArray(higherThis.offerQueue, offer);
+// figure out who the offeree was and remove it from their offerQueue too
+              u.removeFromArray(offer.counterparty.offerQueue, offer);
+	      $('#kActivityContent').append('<div class="activityKCanceled">' + offer.messages.cancel + '</div>');
+	      $(this).parent().find('span.offerMessage').remove();
+	      $(this).parent().find('.accept').remove();
+	      $(this).parent().find('.reject').remove();
+	      $(this).parent().find('.cancel').remove();
+	   });
+
+	 } else if (offer.partyIs === 'offeree') {
+console.log('this should be the offeree');
+
+            var button = '<button class="' + offer.kAtomName + 'Accept accept" value="' + offer.kAtomName + 'Accept" >Accept</button>';
+            $('#offerQueue').append(button);
+            button = '<button class="' + offer.kAtomName + 'Reject reject" value="' + offer.kAtomName + 'Reject" >Reject</button>';
+            $('#offerQueue').append(button);
+            u.on('button.accept', 'click', function() {
+               $('#kActivityContent').append('<div class="activityKAccepted">' + offer.messages.accept + '</div>');
+              u.removeFromArray(higherThis.offerQueue, offer);
+              u.removeFromArray(offer.counterparty.offerQueue, offer);
+	      $(this).parent().find('span.offerMessage').remove();
+//### odd: accept, but not reject, button wasn't removing reject button
+//### problem was that ...('.accept').remove() destroys this event
+//##  handler as it is running!!!
+// solution was to move ...('.accept').remove() to end of callback
+	      $(this).parent().find('.reject').remove();
+	      $(this).parent().find('.cancel').remove();
+              offer.cb();
+	      $(this).parent().find('.accept').remove();
+            });
+
+            u.on('button.reject', 'click', function() {
+               // completely remove offer from the array offerQueue
+              u.removeFromArray(higherThis.offerQueue, offer);
+              u.removeFromArray(offer.counterparty.offerQueue, offer);
+               $('#kActivityContent').append('<div class="activityKRejected">' + offer.messages.reject + '</div>');
+	      $(this).parent().find('span.offerMessage').remove();
+	      $(this).parent().find('.accept').remove();
+	      $(this).parent().find('.cancel').remove();
+	      $(this).parent().find('.reject').remove();
+            });
+	 
+	 } else {
+	   console.error ('offer.partyIs not set to either "offeror" nor "offeree');
+	 }
+
+      });
+  }
+
+  Player.prototype.makeOffer = function(kAtomName, party, messages, cb) {
+console.log('Entering Player.makeOffer, kAtomName = ' + kAtomName);
+      this.offerQueue.push({ partyIs: 'offeree', counterparty: party, kAtomName: kAtomName, messages: messages, cb : cb });
+      party.offerQueue.push({ partyIs: 'offeror', counterparty: this, kAtomName: kAtomName, messages: messages, cb : cb });
+      $('#kActivityContent').append('<div class="activityKOffered">' + messages.offer + '</div>');
+      party.showAndOnOffers();
+  }
+
+//### Currrently doing another way
+  Player.prototype.logKActivity = function(message) {
+    this.kActivity.push(msg);
+    $('#kActivityContent').append('div class="kActivity">' + message + '</div>');
+  }
+
+/*
+  var jsonPlayers = ['Alice', 'Bob', 'Charles', 
+                     'PreposterouslyLongPlayerName',
+		     'Deanna', 'Evita', 'Francine',
+		     'George', 'Hypatia', 'Irene',
+		     'John', 'Karl', 'Laura'];
+*/
+  var jsonPlayers = ['Alice', 'Bob', 'Charles', 
+                     'PreposterouslyLongPlayerName',
+		     'Deanna'];
+
+  var players = [];
+  jsonPlayers.forEach(function(player) {
+    players[player] = new Player(player);
+  });
+
+  var me = players.Bob;
+
+  var counterplayers =  u.removeFromSet(players, me);
+
+  var showWhoAmIButtons = function() {
+     var whoAmIButton = '';
+     $('#whoAmIButtons').empty();
+     whoAmIButton = '<button class="whoAmIMe" value=' + me.name + ' >' + me.name + '</button>';
+     $('#whoAmIButtons').append(whoAmIButton);
+     $('#whoAmIButtons').append('<span class="tooltip">Specific tooltip for ' + me.name + '</span>');
+     for (var player in counterplayers) {
+       whoAmIButton = '<button class="whoAmICounterplayer" value=' + player + ' >' + player + '</button>';
+       $('#whoAmIButtons').append(whoAmIButton);
+       $('#whoAmIButtons').append('<span class="tooltip">Specific tooltip for ' + player + '</span>');
+     }
+  }
+
+
+
+/*    
+//#### winnowing properties to owner is just c. 4 lines of code:
+        u.on('button.me button.counterparty', 'click', function(event) {
+	//#### gotta change this line    u.off('button.me', 'click');
+	    titles.listProperties(this.value);
+	});
+*/
+
+
+  var handleWhoAmI = function() {
+     showWhoAmIButtons();
+     u.on('.whoAmICounterplayer', 'click', function(event) {
+        me = players[this.value];
+        counterplayers = u.removeFromSet(players, me);
+	me.showAndOnOffers();  //### also removes from screen
+	                       //#### offers to prior player
+        u.off('#whoAmIMe', 'click');
+        showPartiesInPropertyHeldHeader();
+        handleWhoAmI();
+    });
+  }
+
+  var showPartiesInPropertyHeldHeader = function() {
+    var partyButton = '';
+    $('#partyButtons').empty();
+    partyButton = '<button class="me ph_party_button" type="button" value=' + me.name + ' ><div>' + me.name + '</div></button>';
+    $('#partyButtons').append(partyButton);
+    $('#partyButtons').append('<span class="tooltip">specific tooltip message about ' + me.name + '</span>');
+    for (var player in counterplayers) {
+       partyButton = '<button class="counterparty ph_party_button" value=' + player + ' ><div>' + player + '</div></button>';
+       $('#partyButtons').append(partyButton);
+       $('#partyButtons').append('<span class="tooltip">specific tooltip message about ' + player + '</span>');
+     }
+     u.off(".ph_party_button", "click");
+  }
+
+
+  var atomButton = '';
+  for (var kAtom in kAtoms) {
+     atomButton = '<button id="' + kAtom + '" class="atomButton" value=' + kAtom + ' >' + kAtom + '</button>'
+     $('div#atomButtons').append(atomButton);
+     $('div#atomButtons').append('<span class="tooltip">specific tooltip message about ' + kAtom + '</span>');
+
+  }
+  showPartiesInPropertyHeldHeader();
+  handleAtomButtons();
+  handleWhoAmI();
+
+ 
+////////////////////////////////////////////////////////////////
+//             set up property titles
+/////////////////////////////////////////////////////////////////
+  var jsonClaims = 
+{ 'blackAcre' : { 'claimor' : 'Alice',   'type' : 'real' },
+   'greenAcre' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'redAcre'   : { 'claimor' : 'Charles', 'type' : 'real' },
+   'blueAcre'  : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'whiteAcre' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'brownAcre' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'seaview'   : { 'claimor' : 'Charles',     'type' : 'real' },
+   'lakesideDock' : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'navigablePuddle' : { 'claimor' : 'Bob',    'type' : 'real' },
+   'bogBottom' : { 'claimor' : 'Bob',    'type' : 'real' },
+   'toxicDump' : { 'claimor' : 'Charles',    'type' : 'real' },
+   'nastyCritic' : { 'claimor' : 'Deanna',    'type' : 'real' },
+   'cloudHill' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'fashionPalace' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'mcMansion' : { 'claimor' : 'Charles',     'type' : 'real' },
+   'wistfulHaven' : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'terriblyLongPropertyName' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'porchView' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'eastView'  : { 'claimor' : 'Charles',     'type' : 'real' },
+   'westView'  : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'northView' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'southView' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'lawnView'  : { 'claimor' : 'Charles',     'type' : 'real' },
+   'malboroughHomes' : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'cheeseboroughHomes' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'foxboroughHomes' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'edinboroughHomes' : { 'claimor' : 'Charles',     'type' : 'real' },
+   'glassBoroughHomes' : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'pondBoroughHomes' : { 'claimor' : 'Alice',    'type' : 'real' },
+   'skyscraperAerie' : { 'claimor' : 'Bob',     'type' : 'real' },
+   'fairHaven'  : { 'claimor' : 'Charles',     'type' : 'real' },
+   'safeHarbor' : { 'claimor' : 'Deanna',     'type' : 'real' },
+   'ceres1' : { 'claimor' : 'PreposterouslyLongPlayerName',  'type' : 'real' },
+   'ceres2' : { 'claimor' : 'PreposterouslyLongPlayerName',  'type' : 'real' },
+   'ceres3' : { 'claimor' : 'PreposterouslyLongPlayerName',  'type' : 'real' }
+};
+
+
+
+///////////////////////////////////////////////////////////////
+//                Set up titles & homestead them
+////////////////////////////////////////////////////////////////
+
+  for (var claim in jsonClaims) {
+    var property = new Property({ name : claim, type : jsonClaims[claim].type });
+    titles.homestead(property, players[jsonClaims[claim].claimor]);
+  }
+
+  titles.listProperties('all');
+ 
+
+/////////////////////////////////////////////////////////
+//            Offer & accept
+/////////////////////////////////////////////////////////
+
+//####  I need a different offerQueue for each player
+
+/*
+  var makeOffer = function(kAtomName, messages, cb) {
+
+console.log('Entering makeOffer, kAtomName = ' + kAtomName);
+      $('#offerQueue').empty();
+      $('#offerQueue').append('<span>' + messages.offer + '</span>');
+      $('#kActivityContent').append('<div class="activityKOffered">' + messages.offer + '</div>');
+//### Id isn't unique -- need a unique ID for each offer, e.g. using t_.now() and party name(s) or a big random#
+      var button = '<button class="' + kAtomName + 'Accept accept" value="' + kAtomName + 'Accept" >Accept</button>';
+      $('#offerQueue').append(button);
+      button = '<button class="' + kAtomName + 'Reject reject" value="' + kAtomName + 'Reject" >Reject</button>';
+      $('#offerQueue').append(button);
+      u.on('button.accept', 'click', function() {
+          $('#kActivityContent').append('<div class="activityKAccepted">' + messages.accept + '</div>');
+//  var selector = "." + this.value;
+          $('button.accept').remove();
+          $('button.reject').remove();
+//  $(selector).remove();
+          cb();
+      });
+    u.on('button.reject', 'click', function() {
+//#### this seems to cause multiple Cancel buttons etc. to appear later
+          $('#kActivityContent').append('<div class="activityKRejected">' + messages.reject + '</div>');
+          $('button.accept').remove();
+          $('button.reject').remove();
+     });
+   }
+*/
+
+/////////////////////////////////////////////////////////
+//                 User input handling
+///////////////////////////////////////////////////////
+
+ 
+  Util.prototype.showAndOnCancelButton = function() {
+    $('#atomButtons')
+      .append('<span><button id="cancelButton" class="cancel" value="anything">Cancel</button></span>');
+
+    $('#atomButtons #cancelButton')
+      .css('background-color', titles.colors.cancelButton);                
+    u.on('#cancelButton', 'click', function() {
+console.log('Just clicked cancel button');
+      u.off('button.counterparty');
+      u.off('button.me');
+      // u.off('#timePicker');
+      u.off('.analogTimePicker');
+      u.off('button.counterparty');
+      u.remove('button.grant');
+      u.removeCancelButton();
+      titles.listProperties('all');
+      handleAtomButtons();
+    }, titles.colors.cancelButton);
+  }
+
+  Util.prototype.removeCancelButton = function() {
+    u.remove('#atomButtons #cancelButton');
+  }
+
+  Util.prototype.remove = function(selector) {
+    $(selector).remove();
+  }
+
+  function handleAtomButtons() {
+     u.on('div#atomButtons button#grant', 'click', function(event) {
+	u.off('div#atomButtons .atomButton', 'click');
+	u.showAndOnCancelButton();
+	var grant = {};
+	grant.counterpartyDone = false;
+	grant.myPropertyDone = false;
+	grant.party = u.deepCopy(me);
+        u.on('button.counterparty', 'click', function(event) {
+	    u.off('button.counterparty', 'click');
+            grant.counterparty = players[this.value];
+	    grant.counterpartyDone = true;
+	});
+        u.on('button.me', 'click', function(event) {
+	    u.off('button.me', 'click');
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+	        u.remove('button.grant');
+	        grant.myProperty = titles.properties[this.value];
+	        grant.myPropertyDone = true;
+	    });
+	});
+	// when all the steps have been completed, reactivate rest of UI
+	t_.becomes(t_.SECOND/100, 
+	     function() { return (grant.counterpartyDone && grant.myPropertyDone); },
+	     function() {
+                 var messages = {};
+		 messages.offer = me.name + ' just offered ' +
+		                  grant.counterparty.name + ' ' +
+		   		  'the grant of ' + grant.myProperty.name;
+		 messages.accept = grant.counterparty.name + ' just accepted ' +
+		                   me.name + '\'s offer of the grant of ' +
+				   grant.myProperty.name;
+		 messages.reject = grant.counterparty.name + ' just rejected ' +
+		                   me.name + '\'s offer of the grant of ' +
+				   grant.myProperty.name;
+		 messages.cancel = me.name + ' just canceled' +
+		                   ' offer of the grant of ' +
+				   grant.myProperty.name +
+				   ' to ' + grant.counterparty.name;
+                 grant.counterparty.makeOffer('grant', grant.party, messages, function() {
+		    kAtoms.grant.k(grant.party, grant.counterparty,
+		                     grant.myProperty);
+		 });
+	         u.remove('button.grant');
+	         u.removeCancelButton();
+		 handleAtomButtons();   
+	      }
+	);
+     });
+
+
+     u.on('div#atomButtons button#timedGrant', 'click', function(event) {
+console.log('Just clicked on timedGrant');
+	u.off('div#atomButtons .atomButton', 'click');
+	u.showAndOnCancelButton();
+	var timedGrant = {};
+	timedGrant.counterpartyDone = false;
+	timedGrant.myPropertyDone = false;
+	timedGrant.timeDone = false;
+	timedGrant.party = u.deepCopy(me);
+        // u.on('#timePicker', 'click', function(event) {
+        u.on('.analogTimePicker', 'analogTimePicked', function(event) {
+console.log('Just clicked submit on the analogTimePicker');
+
+//### because of bug in t_.at() make sure first parameter > t_now() + pI
+//#### todo: real time-picker widget
+	    // u.off('#timePicker', 'click');
+	    u.off('.analogTimePicker', 'analogTimePicked');
+            // timedGrant.time = this.form.time.value;
+	    timedGrant.time = {};
+	    aTP.units.forEach(function(unit) {
+	       timedGrant.time[unit] = event['analogTimePicker' + unit];
+console.log('In "analogTimePicked" event handler, unit = ' + unit + ', time = ' + timedGrant.time[unit]);  // these values are correct
+            });
+	    timedGrant.timePickerDone = true;
+	});
+        u.on('button.counterparty', 'click', function(event) {
+console.log('Just clicked on counterparty');
+	    u.off('button.counterparty', 'click');
+            timedGrant.counterparty = players[this.value];
+	    timedGrant.counterpartyDone = true;
+	});
+        u.on('button.me', 'click', function(event) {
+console.log('Just clicked on me');
+	    u.off('button.me', 'click');
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+console.log('Just clicked on Grant');
+	        u.remove('button.grant');
+	        timedGrant.myProperty = titles.properties[this.value];
+	        timedGrant.myPropertyDone = true;
+	    });
+	});
+	t_.becomes(t_.SECOND/100, 
+	    function() { return (timedGrant.counterpartyDone && timedGrant.myPropertyDone && timedGrant.timePickerDone); },
+            function() {
+console.log('timedGrant: everything\'s entered so fire off the clock');
+                var messages = {};
+		messages.offer = 
+		   me.name + ' just offered ' +
+		   timedGrant.counterparty.name + 
+		   ' the grant of ' + 
+		   timedGrant.myProperty.name +
+		   ' at time ' + timedGrant.time['_secondsIn60'];
+		messages.accept = 
+		   timedGrant.counterparty.name + 
+		   ' just accepted ' +
+		   me.name + '\'s offer of the grant of ' +
+		   timedGrant.myProperty.name +
+		   ' at time ' + timedGrant.time['_secondsIn60'];
+		messages.reject = 
+		   timedGrant.counterparty.name + 
+		   ' just rejected ' +
+		   me.name + '\'s offer of the grant of ' +
+		   timedGrant.myProperty.name +
+		   ' at time ' + timedGrant.time['_secondsIn60'];
+		messages.cancel = 
+		   me.name + ' just canceled' +
+		   ' offer of the grant of ' +
+		    timedGrant.myProperty.name +
+		   ' to ' + timedGrant.counterparty.name +
+		   ' at time ' + timedGrant.time['_secondsIn60'];
+		timedGrant.counterparty.makeOffer('timedGrant', timedGrant.party, messages, function() {
+                    kAtoms.timedGrant.k(timedGrant.party,
+		                        timedGrant.counterparty,
+		                        timedGrant.myProperty,
+		                        timedGrant.time['_secondsIn60']);
+	        });
+	        u.remove('button.grant');
+	        u.removeCancelButton();
+		handleAtomButtons();   
+	     }
+	);
+     });
+
+
+     u.on('div#atomButtons button#swap', 'click', function(event) {
+	u.off('div#atomButtons .atomButton', 'click');
+	u.showAndOnCancelButton();
+	var swap = {};
+	swap.myPropertyDone = false;
+	swap.theirPropertyDone = false;
+	swap.party = u.deepCopy(me);
+        u.on('button.me', 'click', function(event) {
+	    u.off('button.me', 'click');
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+	        u.remove('button.grant');
+	        swap.myProperty = titles.properties[this.value];
+	        swap.myPropertyDone = true;
+	    });
+	});
+        u.on('button.counterparty', 'click', function(event) {
+	    u.off('button.counterparty', 'click');
+            swap.counterparty = players[this.value];
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+	        u.remove('button.grant');
+                swap.theirProperty = titles.properties[this.value];
+                swap.theirPropertyDone = true;
+	    });
+	});
+	t_.becomes(t_.SECOND/100, 
+	    function() { return (swap.myPropertyDone && swap.theirPropertyDone); },
+	    function() {
+	       var messages = {};
+	       messages.offer = 
+	          me.name + 
+	          ' has offered to swap ' + 
+		  swap.myProperty.name + 
+		  ' for ' + swap.counterparty.name + '\'s ' + 
+		  swap.theirProperty.name;
+	       messages.accept = 
+	          swap.counterparty.name + 
+	          ' has accepted ' + me.name + 
+		  '\'s offer to swap ' + 
+		  swap.theirProperty.name + 
+		  ' for ' + swap.myProperty.name;
+	       messages.reject = 
+	          swap.counterparty.name + 
+	          ' has rejected ' + me.name + 
+		  '\'s offer to swap ' + 
+		  swap.theirProperty.name + 
+		  ' for ' + swap.myProperty.name;
+		messages.cancel = 
+		   me.name + ' just canceled' +
+		   ' offer of to swap ' +
+		    swap.myProperty.name +
+		   ' for ' + swap.counterparty.name + '\'s ' + 
+		   swap.theirProperty.name;
+               swap.counterparty.makeOffer('swap', swap.party, messages, function() {
+                  kAtoms.swap.k(swap.party,
+		                swap.counterparty, 
+				swap.myProperty, 
+				swap.theirProperty);
+               });
+	       u.remove('button.grant');
+	       u.removeCancelButton();
+	       handleAtomButtons();   
+             }
+	);
+     });
+
+
+     u.on('div#atomButtons button#future', 'click', function(event) {
+console.log('Just clicked on atomButton ' + this.value);
+	u.off('div#atomButtons .atomButton', 'click');
+	u.showAndOnCancelButton();
+	var future = {};
+	future.myPropertyDone = false;
+	future.theirPropertyDone = false;
+	future.timePickerDone = false;
+	future.party = u.deepCopy(me);
+        u.on('button.me', 'click', function(event) {
+console.log('Just clicked on me');
+	    u.off('button.me', 'click');
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+	        u.remove('button.grant');
+	        future.myProperty = titles.properties[this.value];
+	        future.myPropertyDone = true;
+	    });
+	});
+        u.on('button.counterparty', 'click', function(event) {
+console.log('Just clicked on counterparty');
+	    u.off('button.counterparty', 'click');
+            future.counterparty = players[this.value];
+	    titles.listProperties(this.value, true);
+	    u.on('button.grant', 'click', function(event) {
+	        u.remove('button.grant');
+                future.theirProperty = titles.properties[this.value];
+                future.theirPropertyDone = true;
+	    });
+	});
+        // u.on('#timePicker', 'click', function(event) {
+        u.on('.analogTimePicker', 'analogTimePicked', function(event) {
+console.log('Just clicked submit on analogTimePicker');
+	    // u.off('#timePicker', 'click');
+	    u.off('.analogTimePicker', 'analogTimePicked');
+            // future.time = this.form.time.value;
+	    future.time = {};
+	    aTP.units.forEach(function(unit) {
+	       future.time[unit] = event["analogTimePicker" + unit];
+console.log('In "analogTimePicked" event handler, unit = ' + unit + ', time = ' + future.time[unit]);
+            });
+	    
+	    future.timePickerDone = true;
+	});
+	t_.becomes(t_.SECOND/100, 
+	    function() { return (future.theirPropertyDone && future.myPropertyDone && future.timePickerDone); },
+            function() {
+	      var messages = {};
+	      messages.offer = me.name + 
+	                        ' has offered to swap ' + 
+				future.myProperty.name + 
+				' at time ' + future.time['_secondsIn60'] + ' ' +
+				' for ' + future.counterparty.name + '\'s ' + 
+				future.theirProperty.name;
+	       messages.accept = future.counterparty.name + 
+	                         ' has accepted ' + me.name + 
+				 '\'s offer to swap ' + 
+				 future.theirProperty.name + 
+				' at time ' + future.time['_secondsIn60'] + ' ' +
+				 ' for ' + future.myProperty.name;
+	       messages.reject = future.counterparty.name + 
+	                         ' has rejected' + me.name + 
+				 '\'s offer to swap ' + 
+				 future.theirProperty.name + 
+				' at time ' + future.time['_secondsIn60'] + ' ' +
+				 ' for ' + future.myProperty.name;
+		messages.cancel = 
+		   me.name + ' just canceled' +
+		   ' offer of to swap ' +
+		    future.myProperty.name +
+		   ' for ' + future.counterparty.name + '\'s ' + 
+		   future.theirProperty.name +
+		   ' at time ' + future.time['_secondsIn60'];
+               future.counterparty.makeOffer('future', future.party, messages, function() {
+                  kAtoms.future.k(future.party,
+		                  future.counterparty, 
+				  future.myProperty, 
+				  future.theirProperty, 
+				  future.time['_secondsIn60']);
+               });
+	       u.removeCancelButton();
+	       handleAtomButtons();   
+             }	
+	);
+     });
+
+     
+  }
+
+  t_.every(t_.SECOND, t_.now(), t_.now() + t_.HOUR, function() {
+      var time = (Math.round(t_.nowChopped(1000000) / t_.SECOND)).toString();
+      $('span#clock').html(time);
+  });  
+
+});  
+	
+  </script>
+ 
+ 
+ 
+ <style>
+
+/*    ### try using a reset.css instead  */
+    body {
+       margin: 0 0 0 0;
+       padding: 0 0 0 0;
+/* does nothing here in both FF and 1E9: */
+      background-color: white;
+      background-color: silver;
+      background-color: lightgrey;
+      background-color: gainsboro;
+      background-color: whitesmoke;
+      background-color: dimgray;
+      background-color: darkgray;
+      background-color: gray;
+    }
+
+/* cutting-edge CSS3
+   doesn't work in IE9 -- not even the online demo does
+   _may_ work in FF -- the online demo works
+    .resizable {
+       resize: horizontal;
+    }
+*/
+
+    div {
+/*      border: 1px solid black;  */
+      position: relative;
+    }
+
+/* didn't help the tooltips -- only PreposterouslyLongPlayerName :-)
+    div :hover {
+      overflow: visible;
+   }
+*/
+
+    span {
+/*      border: 1px solid purple; */
+      position: relative;
+    }
+    
+    span :hover {
+       overflow: visible;
+    }
+
+/* n.b. min-width & max-width dont' work on tables or their cells */
+    table {
+/*      border: 1px solid maroon;  */
+      border-spacing: 0.6em 0.2em;
+/* this should be a severely lowered alpha or grayed-out maroon 
+   background-color: maroon;
+*/
+      table-layout: fixed;
+      margin-left: 1em;
+      max-width: 17em;
+      overflow: hidden; 
+    }
+
+    table tr {
+      overflow: hidden;
+    }
+
+/* only works horizontally -- not vertically 
+   and using with dynamic tables prevents them from 
+   growing vertically.   
+   more interaction with nasty .resizable()?  
+
+   but I fixed by putting overflow: hidden on
+   div#pageWrapper
+*/
+    div#propertiesHeldContentWrapper {
+      max-width: 18em;
+      overflow: hidden; 
+    }
+
+    th {
+       font-family: "Hoefler Text", Garamond, "Times New Roman", Times, serif;
+    }
+
+    td.owner {
+      max-width: 4em;
+      overflow: hidden;
+    }
+
+    td.propertyName {
+      max-width: 6em;
+      overflow: hidden;
+    }
+
+    td {
+/* looks good for regular text: */
+      font-family: 'Century Gothic', 'Gill Sans', Arial, sans-serif;
+/* sucks on IE9: */
+      font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
+/* OK: */
+      font-family: Verdana, Arial, Helvetica, sans-serif;
+/* looks good for regular text: */
+      font-family: Tahoma, 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+/* looks good for regular text: */
+      font-family: Geneva, 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+/* I like this best for regular text: */
+      font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Helvetica, Arial, sans-serif;
+      font-size: 0.9em;
+     padding-right: 1em;
+     overflow: hidden;
+    }
+
+    button {
+      font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Helvetica, Arial, sans-serif;
+      font-size: 0.8em;
+      max-width: 8em;
+      overflow: hidden;
+      box-shadow: 2px 2px 3px;
+      margin-right: 5px;
+    }
+
+    button div {
+      overflow: hidden; 
+/*      overflow: visible; */  
+/*      display: inline; */
+    }
+
+/*#### I want only to hover if hovered for >c. 1/2 - 1 second */
+    button:hover+span.tooltip {
+      visibility: visible;
+/*### alas this doesn't override higher-level overflow: hidden */
+      overflow: visible;  
+/* doesn't seem to make a difference      z-index: 999999; */
+    }
+
+/*#### looks like I need an extra layer of div to
+       position the tooltip relative to the button
+       rather than relative to the parent
+       (position relative to significantly bigger parent is 
+       very annoying!)
+*/
+    button+span.tooltip, input+span.tooltip {
+      visibility: hidden;
+      position: absolute;
+      bottom: 40%;
+      left: 40%;
+/* usually opaque but occassionally transparent */
+/* explicit alpha=1 doesn't change that (that's the default anyway) */
+      background-color: white;  
+/* same transparency bug even through this!!! */
+/*      opacity: 1.0; */
+/* doesn't seem to make a difference  */
+/* opacity of 1.0 _and_ high z-index fixes occasional transparency problem */
+      z-index: 9999; 
+      border: 1px solid black;
+      border-radius: 10px;
+/*      overflow: visible; */
+    }
+
+    button.me {
+       font-style: italic;
+    }
+
+/* I want alternating colors like ToysRUs or Google */
+    header span#title {
+      margin-right: 5em;
+      min-width: 20em;
+      font-size: 18px;
+/* Nice for smaller text: */
+      font-family: Georgia, "Times New Roman", Times, serif;
+/* Nice for larger text: */
+      font-family: "Hoefler Text", Garamond, "Times New Roman", Times, serif;
+    }
+
+    span#clock {
+      max-width: 3em;
+      min-width: 1em;
+    }
+
+    div#timePickerDiv {
+      max-width: 4em;
+      min-width: 3em;
+      overflow: hidden;
+    }
+    
+    div#timePickerDiv input {
+      max-width: 4em;
+      min-width: 3em;
+    } 
+
+    div#offerQueue {
+      max-width: 10em;
+      overflow: hidden;
+    }
+
+    header {
+      min-width: 1800px;
+      max-width: 1900px;
+      margin-left: 2em;
+      margin-top: 1em;
+      margin-bottom: 1em;
+/*      border: 1px solid blue; */
+    }
+
+    div#pageWrapper {
+/* to prevent float drop
+   make sure min-width is less than the sum of max-widths plus margins inside
+   n.b. since this is invisible I presume it's OK that this goes 
+   way off the edge of a small (e.g. mobile) screen
+*/
+      min-width: 1800px;
+      max-width: 1900px;
+      float: left;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      overflow: hidden;  
+    }
+
+
+/*##############################################################
+   research .resizable() options
+   to see if there are solutions to these overflow problems:
+   * "hidden" often doesn't hide (sometimes it does)
+   * "scroll" & "auto" produce scroll bars because .resizable() overflows
+      even when content is empty
+   * resizable()'d divs don't auto-resize when adding new content
+   * updating to latest jQueryUI (1.9.2 over jQuery 1.8.3) seems to
+     make overflow: auto work sorta...overflow: hidden still broken...
+
+############################################################### */
+    
+    .resizable {
+    }
+
+
+/* resizable() doesn't seem to work with <span> */
+    div#kActivity, div#propertiesHeld, div#transferHistory {
+      float: left;
+      display: inline-block; 
+      min-width: 1em;
+      max-width: 28em;
+      width: 160px;
+      height: 500px;   /* ignored... */
+/*      max-height: 600px;   */
+      margin-right: 2px;
+/* if I do this it won't grow      overflow: hidden;  */
+/* if I don't do this overflow spills beyond max height of parent */
+/* oh well latter is better than the former */
+       overflow: hidden;
+/* box-shadow works here in both FF and IE9: but not on handles
+   box-shadow: 10px 10px;
+*/
+    }
+
+    div#kActivity {
+      min-width: 1em;
+      max-width: 30em;
+    }
+
+    div#transferHistory {
+       float: left; 
+       width: 18em;
+/* ### I'd like to have such a small min-width
+   ### but how to hide the overflow without 
+   ### preventing table from visibly growing down?
+*/
+       min-width: 1em;  
+       max-width: 26em;
+    }
+
+    div#propertiesHeld {
+       width: 20em;
+       min-width: 15em;
+       max-width: 24em;
+       padding-left: 0.5em;
+    }
+    
+    div#propertiesHeldContent {
+       min-width: 12em;
+       max-width: 15em;
+       overflow: hidden;
+    }
+
+    div#propertiesHeldHeader, div#transferHistoryHeader, div#kActivityHeader {
+       font-size: 1.0em;
+       font-weight: bold;
+       font-style: italic;
+       font-family: "Hoefler Text", Garamond, "Times New Roman", Times, serif;
+       padding-left: 1em;
+       padding-top: 1em;
+       padding-bottom: 1em;
+    }
+
+    div#left {
+      float: left;
+      max-width: 14em;
+      min-width: 10em;
+      padding: 1em 1em 1em 1em;
+    }
+
+    div#composer {
+       margin-bottom: 2em;
+    }
+
+    div#partyButtons {
+       margin-left: 1em;
+       min-width: 10em;
+       max-width: 15em;
+       overflow: hidden;
+    }
+
+    div#atomButtons  {
+       max-width: 10em;
+       overflow: hidden;
+    }
+
+    button.partyButton {
+      margin-top: 1px;
+      margin-bottom: 1px;
+      margin-right: 3px;
+      margin-left: 3px;
+       display: inline-block;
+       overflow: hidden;
+    }
+
+    button.atomButton, button#cancelButton {
+       display: block;  
+       margin-left: auto;
+       margin-right: auto;
+      margin-top: 2px;
+      margin-bottom: 2px;
+    }
+
+    .kActivity, .activityKOffered, .activityKAccepted, .activityKRejected .activityKCanceled {
+      border-bottom: 1px solid maroon;
+      padding-top: 5px;
+      padding-bottom: 5px;
+    }
+
+/* box-shadow works on my own divs but not here underneath .resizable */
+/* resizable() widget is screwing with?  */
+/* I had trouble making these visible in the first place -- how did I do it? */
+    #handle-s {
+      width: 80%;
+      height: 6px;
+      background-color: rgba(200, 200, 200, 0.2);
+/*      background-color: darkgray; */
+      margin-bottom: 20px;
+      margin-right: 20px;
+/* to make this (or regular border) work, need a big margin */
+      box-shadow: 3px 3px 3px #222222;
+    }
+  
+/*
+   .after('<div id="handle-s" class="ui-resizable-handle ui-resizable-s"></div><div id="handle-e" class="ui-resizable-handle ui-resizable-e"></div>')
+*/
+
+    #handle-e {
+      width: 6px;
+      height: 95%;
+      background-color: rgba(200, 200, 200, 0.2);
+      margin-bottom: 20px;
+      margin-right: 20px;
+/* to make this (or regular border) work, need a big margin */
+      box-shadow: 3px 3px 3px #222222;
+    }
+
+  </style>
+
+
+</head>
+<body>
+<header>
+  <span id='title'>Smart Contracts Playground
+  </span>
+  <span>Who am I: </span>
+  <span id='whoAmIButtons'>
+    &nbsp
+  </span>
+  <span id='clock'></span>
+</header>
+<!-- ### making the div itself resizable causes resizable() flakiness -->
+<!-- ### esp. when trying to lock to right w/position: absolute -->
+<!-- div id='pageWrapper' class='resizable' -->
+<div id='pageWrapper'>
+  <div id='left'>
+    <div id='composer'>
+       Offer a contract:
+       <div id='atomButtons'>
+       </div>
+    </div>
+    <div class='analogTimePicker'></div>
+    <div id='offerQueue'>&nbsp</div>
+  </div>
+  <div id='propertiesHeld' class='resizable'>
+    <div id='propertiesHeldHeader'>Properties Held</div>
+    <div id='partyButtons'></div>
+    <div id='propertiesHeldContentWrapper'>
+      <table id='propertiesHeldContent'> 
+      </table>
+    </div>
+  </div>
+  <div id='transferHistory' class='resizable'>
+    <div id='transferHistoryHeader'>Transfer History</div>
+    <table id='transferHistoryContent'> 
+       <tr><th>Grantor&nbsp&nbsp</th><th>Grantee&nbsp&nbsp</th><th>Property&nbsp&nbsp</th></tr>
+    </table>
+  </div>
+  <div id='kActivity' class='resizable'>
+    <div id='kActivityHeader'>Contract Activity</div>
+    <div  id='kActivityContent'> 
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>
+
+
+<!---  Things to fix or add
+
+
+X  * The 3 main areas should have a max-height of the window view size so content never drops below window view
+X  * Construct each Player & Property & homestead from JSON
+X * Lose the History button, or use it to create a winnowed history
+X * Proper behavior for Grant buttons
+X * Cancel button
+X * Bug in kAtom grant
+X * Shadows on handles & buttons: light comes from top (north)  & right (east)
+     X -- using CSS3 box-shadow
+X * Shadows on analogTimePicker!
+     X -- border-radius set to max is a circular border!
+     X -- box-shadow follows circular border!
+       -- niggle: eliminate that bit of space between edge
+          of circle and the border -- just by making the circles
+	  a little bigger, presumably
+X * Make quote style consistent
+X  * Gray out "Properties Held" player buttons on startup
+X * A different offerQueue (incl. visually) for each player : you only see your own offers & acceptances there (or alternately only offers to you listed in kActivity have Accept/Reject buttons to push)
+X * Offer/Accept buttons on separate line
+
+* BUG: offerQueue: delete only the offer accepted/rejected instead of all of me's offers! (need some kind of unique offer/contract ID)
+
+* BUG: Bob can offer to grant greenAcre to both Deanna and Charles! Either it should catch the double-offer when it's made, or present an error message or similar on the screen not just the console.  (popup?  error window?  maroon?)
+
+* table background-color a severely grayed-out or low-alpha maroon
+* me button should be off()
+* grayed-out off() buttons should be a bit more gray / a bit less white
+* How to put padding between button edge and "Preposterously..." string?  
+   + Need another span to separate them?
+   + BTW already works for propertiesHeld party buttons -- just need to 
+     do this for the whoAmI party buttons
+* figure out why Bob's propertyHeld party button is getting a bit cut off
+
+* Tooltip placing over non-parent divs (currently restricted to inside parent div)
+   + probably hard, because overflow: visible doesn't override overflow: hidden on parent it's relative to
+* Tooltip should be placed relative to the sibling button it describes, not
+  to its unpredictably shaped parent
+    + probably requires a wrapper div or span around the button
+    + can I put position: relative on a span?
+* Tooltip texts
+* Tooltips over "Smart Contracts Playground", time button (or aTP), "Properties Held", "Transfer History", "Contract Activity" 
+
+* Currently the deliveryTime of a swap or future is relative to
+  contract acceptance?  That makes it easier to test but should it
+  be an absolute time, or relative to contracet offer?
+
+* Show current time (#seconds in minute) on analogTimePicker when hovering
+  over, and option to enable/disable this click on startup
+     + then get rid of the current "ticking clock"
+* analogTimePicker: move up Submit button & showTime
+* Configurable units shown & their colors & shadow for analogTimePicker
+* showOn()/showOff() calls to analogTimePicker from u.on()/u.off()
+   + turn off coloring of the square canvas or its wrapper at least
+
+* "Properties Held" player buttons:  winnowed listProperties
+  + if so turn them on() upon page load & after a contract offer
+
+* Generate large data sets to test
+ + Generate JSON randomly?  People names, property names, homestead assignments
+ + Generate large #s of transactions
+* UI for millions of people:
+  + select counterparty & whoAmI from select/option?
+  + Business links/friends/frequent business partners vs. strangers
+
+* Transfer history: list only transfers involving 
+  + selected property (bring back the History but, or just click on property?)
+  + selected player
+
+BIGGER FEATURES:
+* Server-based titles (node.js/connect.js/mongoDB)
+* Unique names/IDs for properties, players, & contracts
+
+* Re-architect to use backbone.js
+
+* Contract composition: groups of kAtoms offered & accepted as a group with unique name or ID
+  + list of instantiated kAtom closures
+  + kAtom as a property transferred by another kAtom
+  + with certain standard groups added to pallette
+* Conditions
+  + set of real-world events, perhaps in a particular business niche
+* Options
+
+* Tenancies?
+* Licenses?
+  + server definition, tickets, ...
+
+-->
+
